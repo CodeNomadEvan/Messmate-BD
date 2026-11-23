@@ -1,4 +1,4 @@
-const GuestMeal = require("./GuestMeal");
+﻿const GuestMeal = require("./GuestMeal");
 
 async function createGuestMeal(data) {
   return await GuestMeal.create(data);
@@ -10,11 +10,14 @@ async function getGuestMeals(messId, startDate, endDate) {
     date: { $gte: startDate, $lte: endDate },
   })
     .populate("createdBy", "name")
+    .populate("hostMemberId", "name")
     .sort({ date: -1, createdAt: -1 });
 }
 
 async function getGuestMealById(id, messId) {
-  return await GuestMeal.findOne({ _id: id, messId }).populate("createdBy", "name");
+  return await GuestMeal.findOne({ _id: id, messId })
+    .populate("createdBy", "name")
+    .populate("hostMemberId", "name");
 }
 
 async function updateGuestMeal(id, messId, data) {
@@ -22,7 +25,9 @@ async function updateGuestMeal(id, messId, data) {
     { _id: id, messId },
     data,
     { new: true, runValidators: true }
-  ).populate("createdBy", "name");
+  )
+    .populate("createdBy", "name")
+    .populate("hostMemberId", "name");
 }
 
 async function deleteGuestMeal(id, messId) {

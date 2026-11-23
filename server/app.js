@@ -14,6 +14,8 @@ const mealRequestRoutes = require("./routes/mealRequestRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const guestMealRoutes = require("./routes/guestMealRoutes");
 const mealRateRoutes = require("./routes/mealRateRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 
 const app = express();
 
@@ -36,6 +38,8 @@ app.use("/api/meal-requests", mealRequestRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/guest-meals", guestMealRoutes);
 app.use("/api/meal-rate", mealRateRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/reports", reportRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

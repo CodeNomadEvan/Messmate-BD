@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+﻿const mongoose = require("mongoose");
 
 const guestMealSchema = new mongoose.Schema(
   {
@@ -12,25 +12,18 @@ const guestMealSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    hostMemberId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     date: {
       type: String,
       required: true,
     },
-    breakfast: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    lunch: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    dinner: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
+    breakfast: { type: Number, default: 0, min: 0 },
+    lunch: { type: Number, default: 0, min: 0 },
+    dinner: { type: Number, default: 0, min: 0 },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

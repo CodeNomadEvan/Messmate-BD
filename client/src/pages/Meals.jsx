@@ -6,6 +6,7 @@ import { createMealRequest, getMeal, getPendingRequests, getRequestForMember, sa
 import { formatDate, formatTime, monthEnd, monthLabel, monthStart, toISO, timeToMinutes, currentMinutes } from '../lib/date'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/Toast'
+import GuestMealsPanel from '../components/GuestMealsPanel'
 
 const SLOTS = [
   { key: 'breakfast', short: 'B', label: 'Breakfast' },
@@ -213,6 +214,8 @@ export default function Meals() {
         <div className="flex items-center justify-between mb-4"><div><h2 className="font-display font-800 text-[#1C2B2B]">{canManage ? 'Pending requests' : 'Your request history'}</h2><p className="text-xs text-[#6B7878] mt-1">{canManage ? 'Review member meal changes before they affect the calendar.' : 'Requests stay visible here with their current status.'}</p></div></div>
         {requests.length === 0 ? <div className="py-8 text-center text-sm text-[#6B7878]">{canManage ? 'No pending requests.' : 'No requests yet.'}</div> : <div className="space-y-3">{requests.map((request) => <RequestRow key={request.id} request={request} canManage={canManage} onReview={reviewRequest} />)}</div>}
       </div>
+
+      <GuestMealsPanel members={members} canManage={canManage} />
     </div>
   )
 }

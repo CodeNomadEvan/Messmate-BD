@@ -14,12 +14,14 @@ const expenseSchema = new mongoose.Schema(
     },
     type: {
       type: String,
+      enum: ["Groceries", "Vegetables", "Fish & Meat", "Rice & Lentils", "Electricity", "Gas", "Water", "Internet", "Maid", "Cleaning", "Other"],
       trim: true,
-      default: "",
+      required: true,
     },
     description: {
       type: String,
       trim: true,
+      maxlength: 250,
       default: "",
     },
     amount: {

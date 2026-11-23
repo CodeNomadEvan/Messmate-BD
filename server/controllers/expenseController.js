@@ -1,4 +1,8 @@
 const expenseModel = require("../models/expenseModel");
+const { isValidDateRange, isValidDate } = require("../utils/date");
+
+const BAZAR_TYPES = ["Groceries", "Vegetables", "Fish & Meat", "Rice & Lentils", "Other"];
+const UTILITY_TYPES = ["Electricity", "Gas", "Water", "Internet", "Maid", "Cleaning", "Other"];
 
 function formatExpense(expense) {
   return {
@@ -15,19 +19,19 @@ function formatExpense(expense) {
   };
 }
 
-function validDate(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
-}
-
 async function getExpenses(req, res, next) {
   try {
     const { startDate, endDate, category } = req.query;
 
-    if (!validDate(startDate) || !validDate(endDate)) {
+    if (!isValidDateRange(startDate, endDate)) {
       return res.status(400).json({
         success: false,
         message: "Start date and end date are required.",
       });
+    }
+
+    if (category && !["Bazar", "Utility"].includes(category)) {
+      return res.status(400).json({ success: false, message: "Invalid expense category filter." });
     }
 
     const expenses = await expenseModel.getExpenses(
@@ -55,7 +59,7 @@ async function createExpense(req, res, next) {
       return res.status(400).json({ success: false, message: "Invalid expense category." });
     }
 
-    if (!validDate(date)) {
+    if (!isValidDate(date)) {
       return res.status(400).json({ success: false, message: "A valid date is required." });
     }
 
@@ -64,12 +68,13 @@ async function createExpense(req, res, next) {
       return res.status(400).json({ success: false, message: "Enter a valid amount." });
     }
 
-    if (category === "Bazar" && !String(type || "").trim()) {
-      return res.status(400).json({ success: false, message: "Bazar type is required." });
+    const allowedTypes = category === "Bazar" ? BAZAR_TYPES : UTILITY_TYPES;
+    if (!allowedTypes.includes(String(type || "").trim())) {
+      return res.status(400).json({ success: false, message: "Select a valid expense type." });
     }
 
-    if (category === "Utility" && !String(type || "").trim()) {
-      return res.status(400).json({ success: false, message: "Utility type is required." });
+    if (String(description || "").length > 250) {
+      return res.status(400).json({ success: false, message: "Description cannot exceed 250 characters." });
     }
 
     const expense = await expenseModel.createExpense({
@@ -104,6 +109,19 @@ async function updateExpense(req, res, next) {
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       return res.status(400).json({ success: false, message: "Enter a valid amount." });
+    }
+
+    if (!isValidDate(date)) {
+      return res.status(400).json({ success: false, message: "A valid date is required." });
+    }
+
+    const allowedTypes = category === "Bazar" ? BAZAR_TYPES : UTILITY_TYPES;
+    if (!allowedTypes.includes(String(type || "").trim())) {
+      return res.status(400).json({ success: false, message: "Select a valid expense type." });
+    }
+
+    if (String(description || "").length > 250) {
+      return res.status(400).json({ success: false, message: "Description cannot exceed 250 characters." });
     }
 
     const expense = await expenseModel.updateExpense(req.params.id, req.user.messId, {

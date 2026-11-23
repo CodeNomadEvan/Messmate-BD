@@ -5,13 +5,13 @@ const {
   updateExpense,
   deleteExpense,
 } = require("../controllers/expenseController");
-const { authMiddleware, managerOnly } = require("../middlewares/authMiddleware");
+const { protect, allowRoles } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-router.get("/", authMiddleware, getExpenses);
-router.post("/", authMiddleware, managerOnly, createExpense);
-router.put("/:id", authMiddleware, managerOnly, updateExpense);
-router.delete("/:id", authMiddleware, managerOnly, deleteExpense);
+router.get("/", protect, getExpenses);
+router.post("/", protect, allowRoles("Manager"), createExpense);
+router.put("/:id", protect, allowRoles("Manager"), updateExpense);
+router.delete("/:id", protect, allowRoles("Manager"), deleteExpense);
 
 module.exports = router;

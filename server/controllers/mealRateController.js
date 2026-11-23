@@ -1,6 +1,8 @@
 const expenseModel = require("../models/expenseModel");
 const guestMealModel = require("../models/guestMealModel");
 const mealModel = require("../models/mealModel");
+const userModel = require("../models/userModel");
+const { isValidDateRange } = require("../utils/date");
 
 function countMeals(items) {
   return items.reduce(
@@ -28,17 +30,18 @@ async function getMealRateSummary(req, res, next) {
   try {
     const { startDate, endDate } = req.query;
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate || "") || !/^\d{4}-\d{2}-\d{2}$/.test(endDate || "")) {
+    if (!isValidDateRange(startDate, endDate)) {
       return res.status(400).json({
         success: false,
         message: "Start date and end date are required.",
       });
     }
 
-    const [expenses, meals, guestMeals] = await Promise.all([
+    const [expenses, meals, guestMeals, members] = await Promise.all([
       expenseModel.getExpenses(req.user.messId, startDate, endDate),
       mealModel.getMeals(req.user.messId, startDate, endDate),
       guestMealModel.getGuestMeals(req.user.messId, startDate, endDate),
+      userModel.getMembers(req.user.messId),
     ]);
 
     const bazarExpenses = expenses.filter((expense) => expense.category === "Bazar");
@@ -60,6 +63,7 @@ async function getMealRateSummary(req, res, next) {
         bazarTotal,
         utilityTotal,
         totalExpense: bazarTotal + utilityTotal,
+        memberCount: members.length,
         memberMeals,
         guestMeals: guestMealsCount,
         totalMeals,

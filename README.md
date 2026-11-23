@@ -1,20 +1,41 @@
-# MessMate BD - Module 1
+# MessMate BD - Module 2
 
-Module 1 is implemented as a small MERN application:
+Module 1 remains unchanged in its existing pages and flow. Module 2 adds the next proposal scope on top of the same MERN structure.
 
-- Mess creation and unique mess-code based joining
-- Manager and Member roles
-- Daily breakfast, lunch and dinner tracking
-- Member meal OFF/ON requests with manager approval
-- Manager-controlled same-day cancellation deadline
+## Module 2 features
 
-## Structure
+- Guest meal tracking
+- Bazar and grocery expense management
+- Shared utility expense management
+- Automatic monthly meal-rate calculation
+- Read-only Module 2 visibility for Members
+- Manager-only create, edit, and delete operations for expenses and guest meals
 
-The backend follows the simple project structure used in the course demo:
+The meal rate is calculated as:
+
+`Bazar / (member meals + guest meals)`
+
+Utility expenses are tracked separately and are not included in the food-cost numerator.
+
+## Backend structure
+
+The backend keeps the same simple course-friendly structure:
 
 `Route -> Controller -> Model -> MongoDB`
 
-The `models/` folder contains both the Mongoose schemas and small database-operation files, so the code stays easy to explain in class.
+New Module 2 endpoints:
+
+- `GET /api/expenses`
+- `POST /api/expenses`
+- `PUT /api/expenses/:id`
+- `DELETE /api/expenses/:id`
+- `GET /api/guest-meals`
+- `POST /api/guest-meals`
+- `PUT /api/guest-meals/:id`
+- `DELETE /api/guest-meals/:id`
+- `GET /api/meal-rate/summary`
+
+Existing Module 1 meal endpoints are also included in the server because the Module 2 calculation reads the existing meal records.
 
 ## Run backend
 

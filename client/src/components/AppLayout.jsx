@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Bell, ChevronDown, LayoutDashboard, LogOut, Menu, Users, UtensilsCrossed, Receipt, X } from 'lucide-react'
+import { Bell, BarChart3, ChevronDown, LayoutDashboard, LogOut, Menu, Users, UtensilsCrossed, Receipt, X } from 'lucide-react'
 import Logo from './Logo'
 import ConfirmDialog from './ConfirmDialog'
 import { useAuth } from '../context/AuthContext'
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/meals', label: 'Meals', icon: UtensilsCrossed },
   { to: '/members', label: 'Members', icon: Users },
   { to: '/expenses', label: 'Expenses', icon: Receipt },
+  { to: '/reports', label: 'Reports', icon: BarChart3 },
 ]
 
 export default function AppLayout() {

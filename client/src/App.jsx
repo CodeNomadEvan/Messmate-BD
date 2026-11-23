@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Meals from './pages/Meals'
 import Members from './pages/Members'
 import Expenses from './pages/Expenses'
+import Reports from './pages/Reports'
 import { useAuth } from './context/AuthContext'
 
 function PrivateRoutes() {
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/meals" element={<Meals />} />
         <Route path="/members" element={<Members />} />
         <Route path="/expenses" element={<Expenses />} />
+        <Route path="/reports" element={<Reports />} />
       </Route>
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/'} replace />} />
     </Routes>

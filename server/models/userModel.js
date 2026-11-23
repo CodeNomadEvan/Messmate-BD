@@ -1,4 +1,4 @@
-const User = require("./User");
+﻿const User = require("./User");
 
 async function getUserById(id) {
   return await User.findById(id);
@@ -16,6 +16,13 @@ async function getUserByMessAndName(messId, name) {
 
 async function getMembers(messId) {
   return await User.find({ messId }).sort({ name: 1 });
+}
+
+async function getMembersForPeriod(messId, startDate, endDate) {
+  return await User.find({
+    messId,
+    role: { $in: ["Manager", "Member"] },
+  }).sort({ name: 1 });
 }
 
 async function createUser(data) {
@@ -46,6 +53,7 @@ module.exports = {
   getUserByEmailOrPhone,
   getUserByMessAndName,
   getMembers,
+  getMembersForPeriod,
   createUser,
   updateUser,
   deleteUser,

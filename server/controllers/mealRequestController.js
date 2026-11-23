@@ -1,6 +1,8 @@
 const mealRequestModel = require("../models/mealRequestModel");
 const mealModel = require("../models/mealModel");
 const messModel = require("../models/messModel");
+const { isValidDate, daysBetween } = require("../utils/date");
+const userModel = require("../models/userModel");
 
 function pad(value) {
   return String(value).padStart(2, "0");
@@ -32,23 +34,23 @@ function timeToMinutes(value) {
 
 function dateRange(start, end) {
   const dates = [];
-  const cursor = new Date(`${start}T00:00:00`);
-  const last = new Date(`${end}T00:00:00`);
+  const cursor = new Date(`${start}T00:00:00.000Z`);
+  const last = new Date(`${end}T00:00:00.000Z`);
 
   while (cursor <= last) {
     dates.push(
-      `${cursor.getFullYear()}-${pad(cursor.getMonth() + 1)}-${pad(cursor.getDate())}`
+      `${cursor.getUTCFullYear()}-${pad(cursor.getUTCMonth() + 1)}-${pad(cursor.getUTCDate())}`
     );
-    cursor.setDate(cursor.getDate() + 1);
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
 
   return dates;
 }
 
 function monthEnd(dateString) {
-  const date = new Date(`${dateString}T00:00:00`);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  return `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
+  const [year, month, day] = dateString.split("-").map(Number);
+  const end = new Date(Date.UTC(year, month, 0));
+  return `${end.getUTCFullYear()}-${pad(end.getUTCMonth() + 1)}-${pad(end.getUTCDate())}`;
 }
 
 async function applyRequest(request) {
@@ -110,11 +112,11 @@ async function createMealRequest(req, res, next) {
       return res.status(400).json({ success: false, message: "Invalid request action." });
     }
 
-    if (!startDate) {
+    if (!isValidDate(startDate)) {
       return res.status(400).json({ success: false, message: "Select a date." });
     }
 
-    if (!Array.isArray(slots) || slots.length === 0) {
+    if (!Array.isArray(slots) || slots.length === 0 || new Set(slots).size !== slots.length) {
       return res.status(400).json({ success: false, message: "Select at least one meal." });
     }
 
@@ -129,7 +131,7 @@ async function createMealRequest(req, res, next) {
     }
 
     if (action === "OFF") {
-      if (!endDate || endDate < startDate) {
+      if (!isValidDate(endDate) || endDate < startDate || daysBetween(startDate, endDate) > 31) {
         return res.status(400).json({ success: false, message: "Select a valid date range." });
       }
 
@@ -142,6 +144,10 @@ async function createMealRequest(req, res, next) {
           message: `Today’s cancellation window closed at ${mess.cancellationDeadline}.`,
         });
       }
+    }
+
+    if (String(reason || "").length > 500) {
+      return res.status(400).json({ success: false, message: "Reason cannot exceed 500 characters." });
     }
 
     const request = await mealRequestModel.createRequest({
@@ -208,6 +214,13 @@ async function updateRequestStatus(req, res, next) {
     }
 
     if (status === "Approved") {
+      const memberId = request.memberId?._id || request.memberId;
+      const member = await userModel.getUserById(memberId);
+
+      if (!member || member.isActive === false || !member.messId || member.messId.toString() !== req.user.messId.toString()) {
+        return res.status(400).json({ success: false, message: "This member is no longer active in the mess. Reject the request instead." });
+      }
+
       await applyRequest(request);
     }
 

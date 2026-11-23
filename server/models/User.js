@@ -23,11 +23,20 @@ const userSchema = new mongoose.Schema(
     passwordHash: {
       type: String,
       required: true,
+      select: false,
     },
     role: {
       type: String,
       enum: ["Manager", "Member"],
       required: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    leftAt: {
+      type: Date,
+      default: null,
     },
     messId: {
       type: mongoose.Schema.Types.ObjectId,

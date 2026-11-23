@@ -1,12 +1,11 @@
 const userModel = require("../models/userModel");
 const messModel = require("../models/messModel");
 
-function formatUser(user) {
+function formatUser(user, includeContact = false) {
   return {
     id: user._id.toString(),
     name: user.name,
-    email: user.email,
-    phone: user.phone,
+    ...(includeContact ? { email: user.email, phone: user.phone } : {}),
     role: user.role,
     messId: user.messId?.toString() || null,
   };
@@ -19,7 +18,7 @@ async function getMembers(req, res, next) {
     res.status(200).json({
       success: true,
       count: members.length,
-      data: members.map(formatUser),
+      data: members.map((member) => formatUser(member, req.user.role === "Manager")),
     });
   } catch (error) {
     next(error);
@@ -38,14 +37,14 @@ async function updateMemberRole(req, res, next) {
       return res.status(400).json({ success: false, message: "You cannot change your own role here." });
     }
 
-    const member = await userModel.getUserById(req.params.id).then((member) => (member && member.messId.toString() === req.user.messId.toString() ? member : null));
+    const member = await userModel.getUserById(req.params.id);
 
-    if (!member) {
+    if (!member || member.isActive === false || !member.messId || member.messId.toString() !== req.user.messId.toString()) {
       return res.status(404).json({ success: false, message: "Member not found." });
     }
 
     if (member.role === role) {
-      return res.status(200).json({ success: true, data: formatUser(member) });
+      return res.status(200).json({ success: true, data: formatUser(member, true) });
     }
 
     if (member.role === "Manager" && role === "Member") {
@@ -74,7 +73,7 @@ async function updateMemberRole(req, res, next) {
       }
     }
 
-    res.status(200).json({ success: true, data: formatUser(member) });
+    res.status(200).json({ success: true, data: formatUser(member, true) });
   } catch (error) {
     next(error);
   }
@@ -86,9 +85,9 @@ async function removeMember(req, res, next) {
       return res.status(400).json({ success: false, message: "You cannot remove your own account." });
     }
 
-    const member = await userModel.getUserById(req.params.id).then((member) => (member && member.messId.toString() === req.user.messId.toString() ? member : null));
+    const member = await userModel.getUserById(req.params.id);
 
-    if (!member) {
+    if (!member || member.isActive === false || !member.messId || member.messId.toString() !== req.user.messId.toString()) {
       return res.status(404).json({ success: false, message: "Member not found." });
     }
 
@@ -103,7 +102,7 @@ async function removeMember(req, res, next) {
       }
     }
 
-    await userModel.deleteUser(member._id);
+    await userModel.updateUser(member._id, { isActive: false, leftAt: new Date() });
 
     if (member.role === "Manager") {
       const nextManager = await userModel.getNextManager(req.user.messId);

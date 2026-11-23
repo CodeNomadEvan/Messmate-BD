@@ -151,11 +151,11 @@ export default function Members() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 text-xs text-[#6B7878] mb-3"><Phone size={11} /><span className="font-mono">{member.phone}</span></div>
+              {canManage ? <div className="flex items-center gap-1.5 text-xs text-[#6B7878] mb-3"><Phone size={11} /><span className="font-mono">{member.phone || '—'}</span></div> : <p className="text-xs text-[#8B918D] mb-3">Contact details are visible to the Manager.</p>}
               <div className="flex items-center gap-1.5 text-xs text-[#6B7878]"><Calendar size={11} /><span>Joined account</span></div>
 
               <div className="mt-4 pt-4 border-t border-[#F2EFE9] grid grid-cols-2 gap-2">
-                <div className="bg-[#F7F5F0] rounded-[8px] p-2"><p className="font-mono text-base">{mealCounts[member.id] || 0}</p><p className="text-[10px] text-[#6B7878]">Meals</p></div>
+                <div className="bg-[#F7F5F0] rounded-[8px] p-2"><p className="font-mono text-base">{canManage ? (mealCounts[member.id] || 0) : member.id === user.id ? (mealCounts[member.id] || 0) : "—"}</p><p className="text-[10px] text-[#6B7878]">{canManage || member.id === user.id ? "Meals" : "Private"}</p></div>
                 {canManage ? (
                   <button onClick={() => handleRoleChange(member)} className="rounded-[8px] bg-[#EEF7F2] text-[#1A6B3C] text-xs font-display font-700">{member.role === 'Manager' ? 'Make Member' : 'Make Manager'}</button>
                 ) : (
@@ -172,7 +172,7 @@ export default function Members() {
       )}
 
       {removeTarget && (
-        <ConfirmDialog title="Remove member?" message={`Remove ${removeTarget.name} from this mess?`} confirmLabel="Remove" danger onConfirm={handleRemove} onCancel={() => setRemoveTarget(null)} />
+        <ConfirmDialog title="Remove member?" message={`Remove ${removeTarget.name} from this mess? Their login will be disabled, but their past meal and payment records will be kept for historical reports.`} confirmLabel="Remove" danger onConfirm={handleRemove} onCancel={() => setRemoveTarget(null)} />
       )}
     </div>
   )

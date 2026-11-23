@@ -4,10 +4,14 @@ async function getUserById(id) {
   return await User.findById(id);
 }
 
-async function getUserByEmailOrPhone(email, phone) {
-  return await User.findOne({
-    $or: [{ email }, { phone }],
-  });
+async function getUserByEmailOrPhone(email, phone, includePassword = false) {
+  const query = User.findOne({ $or: [{ email }, { phone }] });
+
+  if (includePassword) {
+    query.select("+passwordHash");
+  }
+
+  return await query;
 }
 
 async function getUserByMessAndName(messId, name) {
@@ -15,7 +19,21 @@ async function getUserByMessAndName(messId, name) {
 }
 
 async function getMembers(messId) {
-  return await User.find({ messId }).sort({ name: 1 });
+  return await User.find({ messId, isActive: { $ne: false } }).sort({ name: 1 });
+}
+
+async function getMembersForPeriod(messId, startDate, endDate) {
+  const start = new Date(`${startDate}T00:00:00.000Z`);
+  const end = new Date(`${endDate}T23:59:59.999Z`);
+
+  return await User.find({
+    messId,
+    createdAt: { $lte: end },
+    $or: [
+      { leftAt: null },
+      { leftAt: { $gte: start } },
+    ],
+  }).sort({ name: 1 });
 }
 
 async function createUser(data) {
@@ -34,11 +52,11 @@ async function deleteUser(id) {
 }
 
 async function countManagers(messId) {
-  return await User.countDocuments({ messId, role: "Manager" });
+  return await User.countDocuments({ messId, role: "Manager", isActive: { $ne: false } });
 }
 
 async function getNextManager(messId) {
-  return await User.findOne({ messId, role: "Manager" }).sort({ createdAt: 1 });
+  return await User.findOne({ messId, role: "Manager", isActive: { $ne: false } }).sort({ createdAt: 1 });
 }
 
 module.exports = {
@@ -46,6 +64,7 @@ module.exports = {
   getUserByEmailOrPhone,
   getUserByMessAndName,
   getMembers,
+  getMembersForPeriod,
   createUser,
   updateUser,
   deleteUser,
